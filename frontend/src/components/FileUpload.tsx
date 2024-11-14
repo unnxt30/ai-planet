@@ -1,65 +1,72 @@
-'use client'
-
-import React, { useState, ChangeEvent } from 'react'
+import React, { useState, ChangeEvent } from 'react';
 import {
   Box,
   Button,
   Container,
   Flex,
   Heading,
-  Input,
   Text,
   VStack,
-} from '@chakra-ui/react'
-import { FiUpload } from 'react-icons/fi'
+  Link,
+} from '@chakra-ui/react';
 
-export default function FileUploadPage() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
+interface UploadPDFProps {
+  onUploadSuccess: () => void;
+}
+
+const UploadPDF: React.FC<UploadPDFProps> = ({ onUploadSuccess }) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file)
-      setUploadStatus(null)
+      if (file.type !== 'application/pdf') {
+        setUploadStatus('Only PDF files are allowed.');
+        return;
+      }
+      setSelectedFile(file);
+      setUploadStatus(null);
+      setFileUrl(null);
     }
-  }
+  };
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setUploadStatus('Please select a file first.')
-      return
+      setUploadStatus('Please select a file first.');
+      return;
     }
 
-    setIsUploading(true)
-    setUploadStatus(null)
+    setIsUploading(true);
+    setUploadStatus(null);
 
-    const formData = new FormData()
-    formData.append('file', selectedFile)
+    const formData = new FormData();
+    formData.append('file', selectedFile);
 
     try {
-      // Replace with your actual API endpoint
       const response = await fetch('http://localhost:8000/upload', {
-
         method: 'POST',
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Upload failed')
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Upload failed');
       }
 
-      const data = await response.json()
-      console.log('Upload successful:', data)
-      setUploadStatus('File uploaded successfully!')
+      const data = await response.json();
+      setFileUrl(data.file_url);
+      setUploadStatus('File uploaded successfully!');
+      onUploadSuccess();
     } catch (error) {
-      console.error('Upload error:', error)
-      setUploadStatus('Error uploading file. Please try again.')
+      console.error('Upload error:', error);
+      setUploadStatus('Error uploading file');
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -78,10 +85,11 @@ export default function FileUploadPage() {
             type="file"
             id="file-upload"
             onChange={handleFileChange}
+            accept=".pdf"
             style={{ display: 'none' }}
           />
           <label htmlFor="file-upload">
-            <Button as="span"  colorScheme="blue">
+            <Button as="span" colorScheme="blue">
               Choose File
             </Button>
           </label>
@@ -94,14 +102,14 @@ export default function FileUploadPage() {
 
         <Button
           onClick={handleUpload}
-          _loading={{
-            bg: 'red.500',
-            color: 'white',
-          }}
-          colorScheme="green"
           disabled={!selectedFile || isUploading}
+          colorScheme="green"
+          _disabled={{
+            opacity: 0.6,
+            cursor: 'not-allowed',
+          }}
         >
-          Upload File
+          {isUploading ? 'Uploading...' : 'Upload File'}
         </Button>
 
         {uploadStatus && (
@@ -112,7 +120,18 @@ export default function FileUploadPage() {
             {uploadStatus}
           </Text>
         )}
+
+        {fileUrl && (
+          <Box>
+            <Text fontWeight="bold">File URL:</Text>
+            <Link href={fileUrl} color="blue.500">
+              {fileUrl}
+            </Link>
+          </Box>
+        )}
       </VStack>
     </Container>
-  )
-}
+  );
+};
+
+export default UploadPDF;
