@@ -143,3 +143,7 @@ Response: {
 - Conversation history persistence
 - Advanced document processing features
 - Caching layer for improved performance
+
+
+## Misc
+I have created a simple and intuitive design, which does not follow the provided figma file. But I can update the UI if it's really necessary.
