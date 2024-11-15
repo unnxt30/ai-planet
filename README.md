@@ -1,105 +1,145 @@
 # Document Chat-Bot
 
-This is part of the Fullstack assignment for AI-Planet.
-
-## Setup Information:
-- You need to create a `.env` file at the root of project, and add the necessary information to it to run the application.
-
-- From root of the project directory, run:
-    ```bash
-    pip install -r requirements.txt
-    ```
-- Frontend: Navigate to the frontend/ directory and run:
-    ``` bash
-    npm i
-    npm start
-    ```
-- Backend: Navigate to the backend/ directory and run:
-    ``` bash
-    uvicorn main:app --reload
-    ```
-- Your app is ready to be loaded on `localhost:3000`
+A full-stack application that enables users to upload PDF documents and interact with them through natural language questions.
 
 ## Architecture Overview
 
-This application follows a client-server architecture with the following components:
+### Frontend Architecture (React + TypeScript)
+- **Components**:
+  - `FileUpload.tsx`: Manages PDF document uploads with progress tracking and validation
+  - `Chat.tsx`: Maintains chat history and message display
+  - `QuestionPrompt.tsx`: Handles user input and message submission
+- **State Management**: Uses React's useState for local state management
+- **UI Framework**: Chakra UI for consistent, responsive design
+- **API Integration**: Fetch API for backend communication
 
-### Frontend (React + TypeScript)
-- Built with React and TypeScript using Chakra UI for styling
-- Main components:
-  - File Upload: Handles PDF document uploads
-  - Chat Interface: Manages conversation with the document
-  - Question Prompt: Handles user input and message sending
+### Backend Architecture (FastAPI)
+- **Core Components**:
+  - FastAPI application with CORS middleware
+  - File handling system with AWS S3 integration
+  - Database integration with Supabase
+  - LLM integration with Groq
+- **Services**:
+  - **Storage Service**: AWS S3 for PDF storage
+  - **Database Service**: Supabase for file metadata
+  - **AI Service**: Groq LLM for document analysis
+- **API Endpoints**:
+  - `/upload`: PDF document processing
+  - `/question`: Document Q&A processing
 
-### Backend (FastAPI)
-- REST API built with FastAPI (Python)
-- Key integrations:
-  - AWS S3: PDF document storage
-  - Supabase: Metadata storage and file tracking
-  - Groq LLM: AI model for document question-answering
-- Main endpoints:
-  - `/upload`: Handles PDF file uploads
-  - `/question`: Processes questions about uploaded documents
+### Data Flow Architecture
+1. **Document Upload Flow**:
+   ```
+   Client → Upload Request → FastAPI → AWS S3
+                                   → Supabase (metadata)
+   ```
 
-### Data Flow
-1. User uploads PDF → Backend stores in S3 and records metadata in Supabase
-2. User asks question → Backend:
-   - Retrieves latest PDF from S3
-   - Extracts text content
-   - Processes question using Groq LLM
-   - Returns AI-generated response
+2. **Question-Answer Flow**:
+   ```
+   Client → Question → FastAPI → Retrieve PDF from S3
+                              → Extract Text
+                              → Process with Groq LLM
+                              → Return Response
+   ```
+
+## Setup Instructions
+
+### Prerequisites
+- Python 3.8+
+- Node.js 14+
+- AWS Account
+- Supabase Account
+- Groq API Key
+
+### Environment Variables
+Create a `.env` file with:
+```env
+# AWS Configuration
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=your_region
+AWS_BUCKET_NAME=your_bucket_name
+
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_key
+
+# Groq Configuration
+GROQ_API_KEY=your_groq_api_key
+```
+
+### Backend Setup
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Unix
+.venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start server
+cd backend/api
+uvicorn main:app --reload
+```
+
+### Frontend Setup
+```bash
+# Install dependencies
+cd frontend
+npm install
+
+# Start development server
+npm start
+```
 
 ## API Documentation
 
-The backend provides two main endpoints:
-
-### Upload PDF
+### Upload Endpoint
 ```http
 POST /upload
-```
-Uploads a PDF file to the system.
+Content-Type: multipart/form-data
 
-**Request**
-- Content-Type: `multipart/form-data`
-- Body: PDF file
-
-**Response**
-```json
-{
+Response: {
     "message": "File uploaded successfully",
     "file_url": "string"
 }
 ```
 
-### Ask Question
+### Question Endpoint
 ```http
 POST /question
-```
-Asks a question about the most recently uploaded PDF document.
+Content-Type: application/json
 
-**Request**
-- Content-Type: `application/json`
-- Body:
-```json
-{
+Request: {
     "question": "string"
 }
-```
 
-**Response**
-```json
-{
+Response: {
     "message": "Question received",
     "question": "string",
     "answer": "string"
 }
 ```
 
-**Error Responses**
-- `400`: Only PDF files are allowed
-- `404`: No PDF file found
-- `500`: Server error (AWS credentials, file processing, etc.)
+## Error Handling
+- Frontend: Comprehensive error handling for file uploads and API requests
+- Backend: 
+  - Input validation for file types
+  - AWS credential verification
+  - Error handling for file processing
+  - LLM processing error handling
 
+## Security Considerations
+- CORS configuration for controlled access
+- Environment variable management for sensitive credentials
+- File type validation
+- Size limitations on uploads
+- Rate limiting (recommended for production)
 
-## Misc
-- I have opted for a very simple UI which is intuitive and easy to navigate which doesn't follow the given design on figma. However if there are any changes required I will do so, if they are necessary and am asked to do.
+## Future Improvements
+- Authentication system
+- Multiple document support
+- Conversation history persistence
+- Advanced document processing features
+- Caching layer for improved performance
