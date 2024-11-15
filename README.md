@@ -3,6 +3,8 @@
 This is part of the Fullstack assignment for AI-Planet.
 
 ## Setup Information:
+- You need to create a `.env` file at the root of project, and add the necessary information to it to run the application.
+
 - From root of the project directory, run:
     ```bash
     pip install -r requirements.txt
