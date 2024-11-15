@@ -100,3 +100,6 @@ Asks a question about the most recently uploaded PDF document.
 - `404`: No PDF file found
 - `500`: Server error (AWS credentials, file processing, etc.)
 
+
+## Misc
+- I have opted for a very simple UI which is intuitive and easy to navigate which doesn't follow the given design on figma. However if there are any changes required I will do so, if they are necessary and am asked to do.
